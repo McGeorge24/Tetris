@@ -25,8 +25,8 @@ public:
 	void SetCoords(int x, int y);
 	void Render(int cell_size);
 	void RotateRight();
-	void Update_Y_Position(char ** grid);
-	void Update_X_Position();
+	void Update_Y_Position(char** grid);
+	void Update_X_Position(char** grid);
 	void Join(Grid* grid);
 };
 

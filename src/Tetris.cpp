@@ -6,19 +6,21 @@
 
 int main()
 {
-	Screen* screen = new Screen(750, 1000);
+	Screen* screen = new Screen(800, 1000);
 	Grid* grid = new Grid;
-	Block* current_block = new Block(5, 0);
-	Block* next_block = new Block(12, 5);
+	std::cout << grid->grid << std::endl;
+	Block* current_block = new Block(5, 1);
+	Block* next_block = new Block(13, 5);
 	screen->Init("Tetris");
 
 	next_block->Randomise((int)screen);
 	current_block->Randomise((int)screen);
 	screen->LoadingScreen();
 	float delta_time = 0.0f;
+	int score = 0;
 	while (!screen->ShouldClose()) {
 		BeginDrawing();
-		screen->Update(grid, current_block, next_block, &delta_time);
+		screen->Update(grid, current_block, next_block, &delta_time, &score);
 		EndDrawing();
 		delta_time += GetFrameTime();
 	}

@@ -13,7 +13,7 @@ public:
 	void LoadingScreen();
 	void GameOverScreen();
 	int Init(const char * title);
-	void Update(Grid* grid, Block* block, Block * next, float* delta_time);
+	void Update(Grid* grid, Block* block, Block * next, float* delta_time, int * score);
 
 	~Screen();
 };

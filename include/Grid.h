@@ -5,13 +5,14 @@ class Grid
 {
 public:
 	char** grid;
+
 	Grid();
 	~Grid();
-	void ClearLines();
+	void ClearLines(int * score);
 	void Render(int cell_size);
 	bool isGameOver();
 
-	char** GetPointer();
+	char GetValue(int x, int y) const;
 	int SetValue(int x, int y, colors color);
 };
 
