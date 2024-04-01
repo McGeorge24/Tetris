@@ -6,8 +6,8 @@ enum colors {
 };
 
 struct Coords {
-	int x;
-	int y;
+	char x;
+	char y;
 };
 
 Color toRGBA(colors color);

@@ -9,7 +9,7 @@ Game::Game(int screenwidth, int screenheight) {
 
 int Game::Initscreen(const char* title) {
 	InitWindow(width, height, title);
-	SetTargetFPS(10);
+	SetTargetFPS(60);
 	return 1;
 }
 
@@ -18,7 +18,7 @@ bool Game::ShouldClose() {
 }
 
 void Game::LoadingScreen() {
-	for (int i = 0; i < 256; i+=100) {
+	for (int i = 0; i < 256; i+=2) {
 		BeginDrawing();
 		ClearBackground(BLACK);
 		DrawText("Tetris", width/2-85, 480, 40, {(unsigned char)i, (unsigned char)i, (unsigned char)i, (unsigned char)i});
@@ -36,7 +36,7 @@ void Game::Update(Grid * grid, Block * block, Block * next, Block * estimation, 
 
 	ClearBackground(BLACK);
 	grid->Render(50);	//render game grid
-	DrawText("Tetris", 10 * 50 + 5, 5, 90, WHITE);
+	DrawText("Tetris", 10 * 50 + 9, 5, 90, WHITE);
 	DrawRectangleGradientH(150, 0, width-150, height, { 100,0,235,0 }, { 100,0,235,145 });	//tetris color gradient over it
 	DrawLineEx({ 10.0*50+3, 0.0 }, { 10.0*50+3, 1.0f * height }, 5.0f, {160, 160, 180, 255});	//separating line (field/info)
 	DrawRectangleRoundedLines({10.5*50, 1.0*90,  5.0* 50, 3.5* 50},0.1f, 8, 5.0f, WHITE);		//next -boundry
@@ -48,6 +48,7 @@ void Game::Update(Grid * grid, Block * block, Block * next, Block * estimation, 
 		if (IsKeyPressed(KEY_ENTER)) {
 			grid->Clear();
 			delta_time = 0;
+			*score = 0;
 		}
 	}
 	else 
@@ -81,7 +82,7 @@ void Game::Run() {
 	Block* current_block = new Block(5, 1);
 	Block* next_block = new Block(13, 5);
 	Block* estimation = new Block(5, 1);
-	Block* on_hold = new Block(5, 5);
+	//Block* on_hold = new Block(5, 5);
 
 	Initscreen("Tetris");
 
@@ -103,7 +104,7 @@ void Game::Run() {
 		time += delta_time;
 	}
 
-	delete on_hold;
+	//delete on_hold;
 	delete estimation;
 	delete next_block;
 	delete current_block;
