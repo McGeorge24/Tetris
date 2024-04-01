@@ -2,7 +2,7 @@
 #include <raylib.h>
 
 enum colors {
-	black, red, orange, yellow, green, cyan, blue, violet, white
+	gray, red, orange, yellow, green, cyan, blue, violet, white
 };
 
 struct Coords {

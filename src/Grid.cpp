@@ -38,7 +38,7 @@ void Grid::ClearLines(int * score) {
 
 		for (int x = 1; x < 11; x++) {
 			//if at least 1 cell is black
-			if (grid[y][x] == (char)black) {
+			if (grid[y][x] == (char)gray) {
 				is_full = false;
 				break;
 			}
@@ -53,6 +53,14 @@ void Grid::ClearLines(int * score) {
 			}
 		}
 		
+	}
+}
+
+void Grid::Clear() {
+	for (int i = 0; i < 21; i++) {
+		for (int j = 1; j < 11; j++) {
+			grid[i][j] = 0;
+		}
 	}
 }
 

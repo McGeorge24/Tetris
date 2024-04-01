@@ -137,14 +137,14 @@
   <ItemGroup>
     <ClCompile Include="src\Grid.cpp" />
     <ClCompile Include="src\Block.cpp" />
-    <ClCompile Include="src\Screen.cpp" />
+    <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\Core.cpp" />
     <ClCompile Include="src\Tetris.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Block.h" />
     <ClInclude Include="include\Core.h" />
-    <ClInclude Include="include\Screen.h" />
+    <ClInclude Include="include\Game.h" />
     <ClInclude Include="include\Grid.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

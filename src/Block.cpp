@@ -63,13 +63,14 @@ void DefineShape(Coords* unit, Shapes shape) {
 }
 
 
-Block::Block(int x, int y) {	//other stuff is initialized when .Randomise() is called
-	axis = { x,y };
-	is_placed = false;
-	color_value = black;
+Block::Block(float x, float y) {
+	coords = { x,y };
+	axis = { (int)round(x), (int)round(y) };
+	color_value = gray;
 	color_RGBA = { 0,0,0,0 };
 	unit[0] = { 0,0 }; unit[1] = { 0,0 }; unit[2] = { 0,0 }; unit[3] = { 0,0 };
 	shape = O;
+	speed = 2.0f;
 }
 
 void Block::Randomise(unsigned int seed) {
@@ -81,6 +82,7 @@ void Block::Randomise(unsigned int seed) {
 }
 
 void Block::SetCoords(int x, int y) {
+	coords = { (float)x, (float)y };
 	axis.x = x;
 	axis.y = y;
 }
@@ -96,57 +98,69 @@ void Block::RotateRight() {
 
 }
 
-void Block::Update_Y_Position(char ** grid) {
-	if (grid[axis.y + 2 + unit[0].y][axis.x + unit[0].x] == 0 && 
-		grid[axis.y + 2 + unit[1].y][axis.x + unit[1].x] == 0 && 
-		grid[axis.y + 2 + unit[2].y][axis.x + unit[2].x] == 0 && 
-		grid[axis.y + 2 + unit[3].y][axis.x + unit[3].x] == 0)
-		axis.y++;
+bool Block::IsPlaced(Grid * grid) {
+	if (grid->GetValue(axis.x + unit[0].x, axis.y + 1 + unit[0].y) == 0 &&
+		grid->GetValue(axis.x + unit[1].x, axis.y + 1 + unit[1].y) == 0 &&
+		grid->GetValue(axis.x + unit[2].x, axis.y + 1 + unit[2].y) == 0 &&
+		grid->GetValue(axis.x + unit[3].x, axis.y + 1 + unit[3].y) == 0)
+		return false;
 	else
-		is_placed = true;
+		return true;
+}
+
+void Block::UpdatePositionPassive(float delta_time) {
+	coords.y+= delta_time*speed;
+	axis.y = round(coords.y);
 }
 
 
-void Block::Update_X_Position(char ** grid) {
-	int modifier = 0;
+void Block::UpdatePosition(Grid * grid) {
+	float modifier = 0;
 	if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) {
-		axis.x--;
-		modifier = 1;
+		modifier -= 0.1;
 	}
 	if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) {
-		axis.x++;
-		modifier = -1;
+		modifier += 0.1;
 	}
 
-	//printf("%x", grid);
+	coords.x += speed * modifier;
+	axis.x = round(coords.x);
+	if (grid->GetValue(axis.x + unit[0].x, axis.y + 1 + unit[0].y) != 0 ||
+		grid->GetValue(axis.x + unit[1].x, axis.y + 1 + unit[1].y) != 0 ||
+		grid->GetValue(axis.x + unit[2].x, axis.y + 1 + unit[2].y) != 0 ||
+		grid->GetValue(axis.x + unit[3].x, axis.y + 1 + unit[3].y) != 0)
+		coords.x -= speed * modifier;
+	axis.x = round(coords.x);
+	if (IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S))
+		UpdatePositionPassive(0.1f);
 	
-	if (grid[axis.y + unit[0].y][axis.x + unit[0].x] != 0 ||
-		grid[axis.y + unit[1].y][axis.x + unit[1].x] != 0 ||
-		grid[axis.y + unit[2].y][axis.x + unit[2].x] != 0 ||
-		grid[axis.y + unit[3].y][axis.x + unit[3].x] != 0)
-		axis.x += modifier;
-	/*
-	if (grid->GetValue(axis.x + unit[0].x - 1, axis.y + unit[0].y) > 0 ||
-		grid->GetValue(axis.x + unit[1].x - 1, axis.y + unit[1].y) > 0 ||
-		grid->getValue(axis.x + unit[2].x - 1, axis.y + unit[2].y) > 0 ||
-		grid->getValue(axis.x + unit[3].x - 1, axis.y + unit[3].y) > 0 )
-		axis.x += modifier;
-	
-	else if (grid->getValue(axis.x + unit[0].x + 1, axis.y + unit[0].y) > 0 ||
-			 grid->getValue(axis.x + unit[1].x + 1, axis.y + unit[1].y) > 0 ||
-			 grid->getValue(axis.x + unit[2].x + 1, axis.y + unit[2].y) > 0 ||
-			 grid->getValue(axis.x + unit[3].x + 1, axis.y + unit[3].y) > 0)
-			 axis.x--;
-	*/
+}
+
+Coords Block::GetCoords() {
+	return axis;
+}
+
+void Block::SetCoords(Coords coords) {
+	this->axis = coords;
+}
+
+void Block::HardDrop(Grid * grid) {
+	while (!IsPlaced(grid)) {
+		axis.y++;
+	}
+}
+
+void Block::ChangeColorBy(char r, char g, char b, char a) {
+	color_RGBA.r += r;
+	color_RGBA.g += g;
+	color_RGBA.b += b;
+	color_RGBA.a += a;
 }
 
 
 void Block::Join(Grid* grid) {
-	grid->SetValue(axis.x + unit[0].x, axis.y + 1 + unit[0].y, color_value);
-	grid->SetValue(axis.x + unit[1].x, axis.y + 1 + unit[1].y, color_value);
-	grid->SetValue(axis.x + unit[2].x, axis.y + 1 + unit[2].y, color_value);
-	grid->SetValue(axis.x + unit[3].x, axis.y + 1 + unit[3].y, color_value);
-	axis.y = 0;
-	axis.x = 5;
-	is_placed = false;
+	grid->SetValue(axis.x + unit[0].x, axis.y + unit[0].y, color_value);
+	grid->SetValue(axis.x + unit[1].x, axis.y + unit[1].y, color_value);
+	grid->SetValue(axis.x + unit[2].x, axis.y + unit[2].y, color_value);
+	grid->SetValue(axis.x + unit[3].x, axis.y + unit[3].y, color_value);
 }

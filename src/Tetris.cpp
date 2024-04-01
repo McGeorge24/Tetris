@@ -1,34 +1,14 @@
 ﻿// Tetris.cpp : This file contains the 'main' function. Program execution begins and ends there.
 
 #include <iostream>
-#include "Screen.h"
+#include "Game.h"
 
 
 int main()
 {
-	Screen* screen = new Screen(800, 1000);
-	Grid* grid = new Grid;
-	std::cout << grid->grid << std::endl;
-	Block* current_block = new Block(5, 1);
-	Block* next_block = new Block(13, 5);
-	screen->Init("Tetris");
-
-	next_block->Randomise((int)screen);
-	current_block->Randomise((int)screen);
-	screen->LoadingScreen();
-	float delta_time = 0.0f;
-	int score = 0;
-	while (!screen->ShouldClose()) {
-		BeginDrawing();
-		screen->Update(grid, current_block, next_block, &delta_time, &score);
-		EndDrawing();
-		delta_time += GetFrameTime();
-	}
-
-	delete next_block;
-	delete current_block;
-	delete grid;
-	delete screen;
+	Game* game = new Game(800, 1000);
+	game->Run();
+	delete game;
 }
 
 
