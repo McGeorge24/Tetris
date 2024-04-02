@@ -5,8 +5,11 @@
 
 
 int main()
-{
-	Game* game = new Game(800, 1000);
+{	
+	int screenheight;
+	std::cout << "Enter screen height (must be a multiple of 200)" << std::endl;
+	std::cin >> screenheight;
+	Game* game = new Game((screenheight/20)*16, screenheight);
 	game->Run();
 	delete game;
 }

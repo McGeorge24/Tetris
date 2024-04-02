@@ -9,6 +9,7 @@ Game::Game(int screenwidth, int screenheight) {
 
 int Game::Initscreen(const char* title) {
 	InitWindow(width, height, title);
+	cellsize = height / 20;
 	SetTargetFPS(60);
 	return 1;
 }
@@ -21,27 +22,40 @@ void Game::LoadingScreen() {
 	for (int i = 0; i < 256; i+=2) {
 		BeginDrawing();
 		ClearBackground(BLACK);
-		DrawText("Tetris", width/2-85, 480, 40, {(unsigned char)i, (unsigned char)i, (unsigned char)i, (unsigned char)i});
+		DrawText("Tetris", width/2- cellsize - cellsize/2, height/2- (cellsize/5)*2, (cellsize/5)*4, {(unsigned char)i, (unsigned char)i, (unsigned char)i, (unsigned char)i});
 		EndDrawing();
 	}
 }
 
 void Game::GameOverScreen() {
-	DrawRectangle(0, 0, width-300, height, { 0, 0, 0, 192 });
-	DrawRectangleGradientH(width-300, 0, 300, height, { 0,0,0,190 }, { 0,0,0,60 });
-	DrawText("Game over", 115, height / 2 - 25, 50, { 255, 0, 0, 192 });
+	DrawRectangle(0, 0, width-6*cellsize, height, { 0, 0, 0, 192 });
+	DrawRectangleGradientH(width-6*cellsize, 0, 6*cellsize, height, { 0,0,0,190 }, { 0,0,0,60 });
+	DrawText("Game over", 2*cellsize, height / 2 - cellsize/2, cellsize, { 255, 0, 0, 192 });
 }
 
-void Game::Update(Grid * grid, Block * block, Block * next, Block * estimation, float delta_time, int time, int * score) {
+void Game::Update(Grid * grid, Block * block, Block * next, Block * estimation, float delta_time, int time, int * score, int * level) {
 
 	ClearBackground(BLACK);
-	grid->Render(50);	//render game grid
-	DrawText("Tetris", 10 * 50 + 9, 5, 90, WHITE);
-	DrawRectangleGradientH(150, 0, width-150, height, { 100,0,235,0 }, { 100,0,235,145 });	//tetris color gradient over it
-	DrawLineEx({ 10.0*50+3, 0.0 }, { 10.0*50+3, 1.0f * height }, 5.0f, {160, 160, 180, 255});	//separating line (field/info)
-	DrawRectangleRoundedLines({10.5*50, 1.0*90,  5.0* 50, 3.5* 50},0.1f, 8, 5.0f, WHITE);		//next -boundry
-	DrawText("Next:", 11 * 50, 2 * 50+5, 40, WHITE);	//next -text
-	next->Render(50);	//next -piece
+	grid->Render(cellsize);	//render game grid
+	DrawText("Tetris", 10 * cellsize + cellsize/5, cellsize/10, 2*cellsize-cellsize/5, WHITE);
+	DrawRectangleGradientH(3*cellsize, 0, width-3*cellsize, height, { 100,0,235,0 }, { 100,0,235,145 });	//tetris color gradient over it
+	
+	//separating line
+	DrawLine(10*cellsize, 0, 10*cellsize, height, { 160, 160, 180, 255 });
+	//DrawLineEx({ 10.0*50+3, 0.0 }, { 10.0*50+3, 1.0f * height }, 5.0f, {160, 160, 180, 255});	//separating line (field/info)
+
+	//next block display
+	DrawRectangleRoundedLines({10.5f*cellsize, 2.0f*cellsize-cellsize/5.0f,  5.0f* cellsize, 3.5f* cellsize},0.1f, 8, cellsize/10.0f, WHITE);		//next -boundry
+	DrawText("Next:", 11 * cellsize, 2 * cellsize+cellsize/10, (cellsize/5)*4, WHITE);	//next -text
+	next->Render(cellsize);	//next -piece
+
+	//level display
+	DrawRectangleRoundedLines({ 10.5f * cellsize, 6.0f * cellsize - cellsize / 5.0f,  5.0f * cellsize, 1.5f * cellsize }, 0.1f, 8, cellsize / 10.0f, WHITE);	//score -boundry
+	DrawText(TextFormat("Level %i", *level), 11 * cellsize, 6 * cellsize + cellsize / 10, (cellsize / 5) * 4, WHITE);	//score -points
+
+	DrawRectangleRoundedLines({ 10.5f * cellsize, 11.0f * cellsize - cellsize / 5.0f,  5.0f * cellsize, 3.5f * cellsize }, 0.1f, 8, cellsize / 10.0f, WHITE);		//next -boundry
+	DrawText("Hold:", 11 * cellsize, 11 * cellsize + cellsize / 10, (cellsize / 5) * 4, WHITE);	//next -text
+	//render held piece
 
 	if (grid->isGameOver()) {
 		GameOverScreen();
@@ -63,17 +77,17 @@ void Game::Update(Grid * grid, Block * block, Block * next, Block * estimation, 
 			next->Randomise((unsigned int)(time * 10000*width));
 		}	
 		
-		estimation->Render(50);
-		block->Render(50);
+		estimation->Render(cellsize);
+		block->Render(cellsize);
 		*estimation = *block;
 		estimation->ChangeColorBy(0, 0, 0, -175);
 		grid->ClearLines(score);
 	}
 	
 	//draw over potential game_over screen
-	DrawRectangleRoundedLines({ 10.5 * 50, 1.0 * 290,  5.0 * 50, 2.5 * 50 }, 0.1f, 8, 5.0f, WHITE);	//score -boundry
-	DrawText("Score:", 11 * 50, 6 * 50 + 5, 40, WHITE);	//score -text
-	DrawText(TextFormat("   %i", *score), 11 * 50, 7 * 50 + 5, 40, WHITE);	//score -points
+	DrawRectangleRoundedLines({ 10.5f * cellsize, 8.0f*cellsize -cellsize/5.0f,  5.0f * cellsize, 2.5f * cellsize }, 0.1f, 8, cellsize/10.0f, WHITE);	//score -boundry
+	DrawText("Score:", 11 * cellsize, 8 * cellsize + cellsize / 10, (cellsize / 5) * 4, WHITE);	//score -text
+	DrawText(TextFormat("   %i", *score), 11 * cellsize, 9 * cellsize + cellsize / 10, (cellsize/5)*4, WHITE);	//score -points
 }
 
 void Game::Run() {
@@ -95,10 +109,11 @@ void Game::Run() {
 	float delta_time = 0.0f;
 	float time = 0.0f;
 	int score = 0;
+	int level = 1;
 	while (!ShouldClose()) {
 
 		BeginDrawing();
-		Update(grid, current_block, next_block, estimation, delta_time, time, &score);
+		Update(grid, current_block, next_block, estimation, delta_time, time, &score, &level);
 		EndDrawing();
 		delta_time = GetFrameTime();
 		time += delta_time;

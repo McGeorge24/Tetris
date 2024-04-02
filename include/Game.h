@@ -5,6 +5,7 @@
 class Game {
 private:
 	int width, height;
+	int cellsize;
 
 public:
 	Game(int screenwidth, int screenheight);
@@ -14,7 +15,7 @@ public:
 	void LoadingScreen();
 	void GameOverScreen();
 	int Initscreen(const char * title);
-	void Update(Grid* grid, Block* block, Block * next, Block * estimation, float delta_time, int time, int * score);
+	void Update(Grid* grid, Block* block, Block * next, Block * estimation, float delta_time, int time, int * score, int* level);
 
 	~Game();
 };

@@ -26,7 +26,7 @@ Color toRGBA(colors color) {
 
 void DrawUnit(int x, int y, int cell_size, Color color) //x,y meaning which cell, not pixel coord
 {
-	DrawRectangle(x * cell_size + 5, y * cell_size + 5, cell_size - 10, cell_size - 10, color);
+	DrawRectangle(x * cell_size + cell_size/10, y * cell_size + cell_size/10, cell_size - cell_size/5, cell_size - cell_size / 5, color);
 	color.a -= 80;
 	DrawRectangle(x * cell_size, y * cell_size, cell_size, cell_size, color);
 	//DrawText(TextFormat("%i, %i", x, y), x*cell_size+5, y*cell_size+5, 10, WHITE);
