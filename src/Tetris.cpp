@@ -1,6 +1,4 @@
 ﻿// Tetris.cpp : This file contains the 'main' function. Program execution begins and ends there.
-
-#include <iostream>
 #include "Game.h"
 
 
@@ -9,7 +7,8 @@ int main()
 	int screenheight;
 	std::cout << "Enter screen height (must be a multiple of 200)" << std::endl;
 	std::cin >> screenheight;
-	Game* game = new Game((screenheight/20)*16, screenheight);
+	Game * game = new Game((screenheight / 20) * 16, screenheight);
+	game->Init("Tetris");
 	game->Run();
 	delete game;
 }

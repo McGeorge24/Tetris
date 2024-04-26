@@ -4,8 +4,27 @@
 
 class Game {
 private:
+
+	// constants
 	int width, height;
 	int cellsize;
+	Image window_icon;
+
+	//game state
+	int level;
+	int score;
+	int lines_cleared;
+	float last_update_time = 0;
+	
+	//entities
+	Grid grid;
+	Block* current_block;
+	Block* next_block; 
+	Block* estimation;
+	Block* on_hold;
+
+	bool EventTriggered(float interval);
+	void HandleInput();
 
 public:
 	Game(int screenwidth, int screenheight);
@@ -14,8 +33,8 @@ public:
 	bool ShouldClose();
 	void LoadingScreen();
 	void GameOverScreen();
-	int Initscreen(const char * title);
-	void Update(Grid* grid, Block* block, Block * next, Block * estimation, float delta_time, int time, int * score, int* level);
+	int Init(const char * title);
+	void Render();
 
 	~Game();
 };

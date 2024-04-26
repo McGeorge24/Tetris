@@ -126,19 +126,11 @@ void DefineShape(Coords * unit, char * rotation_states, Shapes shape) {
 
 		*rotation_states = 4;
 	}
-	/*
-	std::cout << shape << std::endl;
-	std::cout << unit[0].x << unit[0].y << std::endl;
-	std::cout << unit[1].x << unit[1].y << std::endl;
-	std::cout << unit[2].x << unit[2].y << std::endl;
-	std::cout << unit[3].x << unit[3].y << std::endl;
-	*/
 }
 
 
-Block::Block(float x, float y) {
-	coords = { x,y };
-	axis = { (char)round(x), (char)round(y) };
+Block::Block(char x, char y, bool is_uninitialized) {
+	axis = { x, y };
 	color_value = gray;
 	color_RGBA = { 0,0,0,0 };
 	for (int i = 0; i < 16; i++) {
@@ -146,15 +138,15 @@ Block::Block(float x, float y) {
 	}
 	shape = O;
 	rotation_states = 0;
-	speed = 2.0f;
 	state = 0;
+	this->is_uninitialized = is_uninitialized;
 }
 
 bool Block::DoesIntersect(Grid * grid) {
-	if (grid->GetValue(axis.x + unit[state * 4 + 0].x, axis.y + 1 + unit[state * 4 + 0].y) != 0 ||
-		grid->GetValue(axis.x + unit[state * 4 + 1].x, axis.y + 1 + unit[state * 4 + 1].y) != 0 ||
-		grid->GetValue(axis.x + unit[state * 4 + 2].x, axis.y + 1 + unit[state * 4 + 2].y) != 0 ||
-		grid->GetValue(axis.x + unit[state * 4 + 3].x, axis.y + 1 + unit[state * 4 + 3].y) != 0)
+	if (grid->GetValue(axis.x + unit[state * 4 + 0].x, axis.y + unit[state * 4 + 0].y) != 0 ||
+		grid->GetValue(axis.x + unit[state * 4 + 1].x, axis.y + unit[state * 4 + 1].y) != 0 ||
+		grid->GetValue(axis.x + unit[state * 4 + 2].x, axis.y + unit[state * 4 + 2].y) != 0 ||
+		grid->GetValue(axis.x + unit[state * 4 + 3].x, axis.y + unit[state * 4 + 3].y) != 0)
 		return true;
 	else
 		return false;
@@ -169,7 +161,6 @@ void Block::Randomise(unsigned int seed) {
 }
 
 void Block::SetCoords(int x, int y) {
-	coords = { (float)x, (float)y };
 	axis.x = x;
 	axis.y = y;
 }
@@ -198,42 +189,19 @@ bool Block::IsPlaced(Grid * grid) {
 		return true;
 }
 
-void Block::UpdatePositionPassive(float delta_time) {
-	coords.y+= delta_time*speed;
-	axis.y = round(coords.y);
-}
-
-
-void Block::UpdatePosition(Grid * grid) {
-	float modifier = 0;
-	if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) {
-		modifier -= 0.08f;
+void Block::UpdatePositionPassive(Grid * grid) {
+	axis.y++;
+	if (DoesIntersect(grid)) {
+		axis.y--;
 	}
-	if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) {
-		modifier += 0.08f;
-	}
-
-	coords.x += speed * modifier;
-	axis.x = round(coords.x);
-	if (DoesIntersect(grid))
-		coords.x -= speed * modifier;
-	axis.x = round(coords.x);
-	if (IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S))
-		UpdatePositionPassive(0.08f);
-
-	if (IsKeyPressed(KEY_SPACE)) {
-		RotateRight(grid);
-	}
-	
 }
 
-Coords Block::GetCoords() {
-	return axis;
+
+void Block::HandleInput(Grid * grid, Block * held) {
+	//located at game.HandleInput();
 }
 
-void Block::SetCoords(Coords coords) {
-	this->axis = coords;
-}
+
 
 void Block::HardDrop(Grid * grid) {
 	while (!IsPlaced(grid)) {

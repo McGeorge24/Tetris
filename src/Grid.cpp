@@ -1,5 +1,4 @@
 #include "Grid.h"
-#include "Core.h"
 
 Grid::Grid() {
 	grid = new char* [22];
@@ -13,7 +12,8 @@ Grid::Grid() {
 		}
 	}
 	for (int j = 0; j < 12; j++) //set last line to white - border
-	{
+	{	
+		grid[0][j] = 0;
 		grid[21][j] = 8;	
 	}
 	for (int i = 0; i < 22; i++)	//set first an last column to white - border
@@ -29,31 +29,47 @@ Grid::~Grid() {
 	delete[] grid;
 }
 
-void Grid::ClearLines(int * score) {
-	bool is_full;	//for 1 line
+int Grid::ClearLines(int level) {
+	bool is_full;
+	int lines_cleared = 0;
 
 	for (int y = 1; y < 21; y++) {
 
+		//check if the line is full
 		is_full = true;
-
 		for (int x = 1; x < 11; x++) {
-			//if at least 1 cell is black
-			if (grid[y][x] == (char)gray) {
+			if (grid[y][x] == 0) {
 				is_full = false;
 				break;
 			}
 		}
 
+		//move lines down if it is full
 		if (is_full) {
-			(*score)++;
+			lines_cleared++;
+
 			for (int i = y; i > 0; i--) {
-				for (int j = 1; j < 11; j++) {
-					grid[i][j] = grid[i - 1][j];
+				for (int x = 1; x < 11; x++) {
+					grid[i][x] = grid[i - 1][x];
 				}
 			}
 		}
-		
 	}
+
+	switch (lines_cleared) {
+	default:
+		return 0;
+	case 1:
+		return 40 * (level + 1);
+	case 2:
+		return 100 * (level + 1);
+	case 3:
+		return 300 * (level + 1);
+	case 4:
+		return 1200 * (level + 1);
+	}
+
+	//todo rework ClearLines
 }
 
 void Grid::Clear() {
