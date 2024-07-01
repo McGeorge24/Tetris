@@ -8,7 +8,7 @@ public:
 
 	Grid();
 	~Grid();
-	int ClearLines(int level);
+	int ClearLines(int level, int * lines_cleared_total);
 	void Clear();
 	void Render(int cell_size);
 	bool isGameOver();

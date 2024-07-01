@@ -29,9 +29,9 @@ Grid::~Grid() {
 	delete[] grid;
 }
 
-int Grid::ClearLines(int level) {
+int Grid::ClearLines(int level, int * lines_cleared_total) {
 	bool is_full;
-	int lines_cleared = 0;
+	int temp_lines_cleared = 0;
 
 	for (int y = 1; y < 21; y++) {
 
@@ -46,7 +46,7 @@ int Grid::ClearLines(int level) {
 
 		//move lines down if it is full
 		if (is_full) {
-			lines_cleared++;
+			temp_lines_cleared++;
 
 			for (int i = y; i > 0; i--) {
 				for (int x = 1; x < 11; x++) {
@@ -56,7 +56,8 @@ int Grid::ClearLines(int level) {
 		}
 	}
 
-	switch (lines_cleared) {
+	*lines_cleared_total += temp_lines_cleared;
+	switch (temp_lines_cleared) {
 	default:
 		return 0;
 	case 1:
@@ -68,8 +69,6 @@ int Grid::ClearLines(int level) {
 	case 4:
 		return 1200 * (level + 1);
 	}
-
-	//todo rework ClearLines
 }
 
 void Grid::Clear() {

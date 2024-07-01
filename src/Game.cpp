@@ -17,8 +17,7 @@ int Game::Init(const char* title) {
 	//set constants
 	InitWindow(width, height, title);
 	SetTargetFPS(30);
-	window_icon = LoadImage("../assets/tetris-logo.png");
-	printf("%d\n", IsImageReady(window_icon));
+	window_icon = LoadImage("assets\\pink tetromino.png");
 	SetWindowIcon(window_icon);
 
 	last_update_time = 0.0f;
@@ -35,12 +34,16 @@ bool Game::ShouldClose() {
 }
 
 void Game::LoadingScreen() {
-	for (int i = 0; i < 256; i+=2) {
+	for (int i = 0; i < 256; i+=4) {
 		BeginDrawing();
 		ClearBackground(BLACK);
 		DrawText("Tetris", width/2- cellsize - cellsize/2, height/2- (cellsize/5)*2, (cellsize/5)*4, {(unsigned char)i, (unsigned char)i, (unsigned char)i, (unsigned char)i});
 		EndDrawing();
 	}
+	InitAudioDevice();
+	normal_theme = LoadMusicStream("assets\\normal_theme.mp3");
+	intense_theme = LoadMusicStream("assets\\intense_theme.mp3");
+	//SetMasterVolume(30.0f);
 }
 
 void Game::GameOverScreen() {
@@ -98,10 +101,6 @@ void Game::Render() {
 	//case of game over
 	if (grid.isGameOver()) {
 		GameOverScreen();
-		if (IsKeyPressed(KEY_ENTER)) {
-			grid.Clear();
-			score = 0;
-		}
 	}
 	
 	//draw achieved score over game_over screen
@@ -116,40 +115,78 @@ void Game::Run() {
 	next_block->Randomise((int)this);
 	current_block->Randomise((int)this);
 
-	//LoadingScreen();
+	LoadingScreen();
 	
 	// main game loop
 
+	PlayMusicStream(intense_theme);
+	PlayMusicStream(normal_theme);
+	SetMusicVolume(intense_theme, 7.0f);
+	SetMusicVolume(normal_theme, 1.0f);
+
 	while (!ShouldClose()) {
-		*estimation = *current_block;
-		estimation->HardDrop(&grid);
 
 		// render everything
 		BeginDrawing();
 			this->Render();
 		EndDrawing();
+		
 
-		// for passive block falling
-		if (EventTriggered(0.5f)) {
-			current_block->UpdatePositionPassive(&grid);
+		if (!grid.isGameOver()) {
+			if (level > 0) {
+				UpdateMusicStream(intense_theme);
+			}
+			else
+				UpdateMusicStream(normal_theme);
+
+			// for passive block falling
+			if (EventTriggered(0.5f)) {
+				current_block->UpdatePositionPassive(&grid);
+			}
+
+			// update position according to inputs
+			this->HandleInput();
+
+			//case of block hitting the ground
+			if (current_block->IsPlaced(&grid)) {
+				current_block->Join(&grid);
+				*current_block = *next_block;
+				current_block->SetCoords(5, 1);
+				next_block->Randomise((unsigned int)last_update_time);
+			}
+
+
+			//estimate where the block will fall
+			*estimation = *current_block;
+			estimation->HardDrop(&grid);
 		}
-
-		//case of block hitting the ground
-		if (current_block->IsPlaced(&grid)) {
-			current_block->Join(&grid);
-			*current_block = *next_block;
-			current_block->SetCoords(5, 1);
-			next_block->Randomise((unsigned int)last_update_time);
+		else {
+			if (IsKeyPressed(KEY_ENTER)) {
+				StopMusicStream(intense_theme);
+				StopMusicStream(normal_theme);
+				PlayMusicStream(intense_theme);
+				PlayMusicStream(normal_theme);
+				on_hold->is_uninitialized = true;
+				grid.Clear();
+				score = 0;
+				lines_cleared = 0;
+			}
 		}
-
-		// update position according to inputs
-		this->HandleInput();
 
 
 		// clear the lines and update score accordingly
-		score += grid.ClearLines(level);
+		score += grid.ClearLines(level, &lines_cleared);
+		// std::cout << lines_cleared << std::endl;
+		// update the level according to linec_cleared
+		if (lines_cleared / 10 > level) {
+			update_interval *= 0.83f;
+			level = lines_cleared / 10;
+		}
+		
 	}
 
+	StopMusicStream(normal_theme);
+	StopMusicStream(intense_theme);
 }
 
 void Game::HandleInput() {
@@ -232,5 +269,10 @@ Game::~Game() {
 	delete estimation;
 	delete next_block;
 	delete current_block;
+
+	UnloadImage(window_icon);
+	UnloadMusicStream(normal_theme);
+	UnloadMusicStream(intense_theme);
+	CloseAudioDevice();
 	CloseWindow();
 }

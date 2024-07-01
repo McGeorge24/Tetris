@@ -9,12 +9,14 @@ private:
 	int width, height;
 	int cellsize;
 	Image window_icon;
+	Music normal_theme;
+	Music intense_theme;
 
 	//game state
 	int level;
 	int score;
-	int lines_cleared;
-	float last_update_time = 0;
+	float last_update_time;
+	float update_interval;
 	
 	//entities
 	Grid grid;
@@ -27,6 +29,9 @@ private:
 	void HandleInput();
 
 public:
+	//clear lines needs access to thiss
+	int lines_cleared;
+
 	Game(int screenwidth, int screenheight);
 
 	void Run();
