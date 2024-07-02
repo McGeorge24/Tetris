@@ -3,6 +3,13 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# unused assets
+assets/tetris_normal.mp3
+assets/tetris-logo.png
+
+# old main file
+src/Main.cpp
+
 # User-specific files
 *.rsuser
 *.suo

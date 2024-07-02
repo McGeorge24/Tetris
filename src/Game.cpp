@@ -41,7 +41,7 @@ void Game::LoadingScreen() {
 		EndDrawing();
 	}
 	InitAudioDevice();
-	normal_theme = LoadMusicStream("assets\\normal_theme.mp3");
+	//normal_theme = LoadMusicStream("assets\\normal_theme.mp3");
 	intense_theme = LoadMusicStream("assets\\intense_theme.mp3");
 	//SetMasterVolume(30.0f);
 }
@@ -120,9 +120,9 @@ void Game::Run() {
 	// main game loop
 
 	PlayMusicStream(intense_theme);
-	PlayMusicStream(normal_theme);
+	//PlayMusicStream(normal_theme);
 	SetMusicVolume(intense_theme, 7.0f);
-	SetMusicVolume(normal_theme, 1.0f);
+	//SetMusicVolume(normal_theme, 1.0f);
 
 	while (!ShouldClose()) {
 
@@ -133,12 +133,12 @@ void Game::Run() {
 		
 
 		if (!grid.isGameOver()) {
-			if (level > 0) {
-				UpdateMusicStream(intense_theme);
+			UpdateMusicStream(intense_theme);
+			/*if (level > 0) {
 			}
 			else
-				UpdateMusicStream(normal_theme);
-
+				UpdateMusicStream(normal_theme);*/
+			
 			// for passive block falling
 			if (EventTriggered(0.5f)) {
 				current_block->UpdatePositionPassive(&grid);
@@ -163,9 +163,9 @@ void Game::Run() {
 		else {
 			if (IsKeyPressed(KEY_ENTER)) {
 				StopMusicStream(intense_theme);
-				StopMusicStream(normal_theme);
+				//StopMusicStream(normal_theme);
 				PlayMusicStream(intense_theme);
-				PlayMusicStream(normal_theme);
+				//PlayMusicStream(normal_theme);
 				on_hold->is_uninitialized = true;
 				grid.Clear();
 				score = 0;
@@ -185,7 +185,7 @@ void Game::Run() {
 		
 	}
 
-	StopMusicStream(normal_theme);
+	//StopMusicStream(normal_theme);
 	StopMusicStream(intense_theme);
 }
 
@@ -271,7 +271,7 @@ Game::~Game() {
 	delete current_block;
 
 	UnloadImage(window_icon);
-	UnloadMusicStream(normal_theme);
+	//UnloadMusicStream(normal_theme);
 	UnloadMusicStream(intense_theme);
 	CloseAudioDevice();
 	CloseWindow();

@@ -1,4 +1,7 @@
 # Tetris
-The project is dependent on raylib library: https://www.raylib.com/
 
-Written with: Visual Studio Community 2022
+## Dependencies
+Built with Visual studio 2022 Community edition.
+The project is dependent on raylib library, available [here](https://www.raylib.com/). I installed it with vcpkg.
+
+## Platforms

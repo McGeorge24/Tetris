@@ -1,6 +1,5 @@
 #pragma once
 #include <raylib.h>
-#include <iostream>
 
 enum colors {
 	gray, red, orange, yellow, green, cyan, blue, violet, white
