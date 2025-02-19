@@ -33,25 +33,24 @@ extern "C" {
 #include "Game.h"
 
 
-int WINAPI WinMain(HINSTANCE hInstance, 
-				   HINSTANCE hPrevInstance,
-				   PSTR lpCmdLine,
-				   int CmdShow)
+int WINAPI WinMain(HINSTANCE hInstance,
+    HINSTANCE hPrevInstance,
+    PSTR lpCmdLine,
+    int CmdShow)
 {
-	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
-	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+    int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+    int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+    int Height = screenHeight / 200;
+    Height *= 200;  //mora biti večkratnik 200, da ne odstopajo pixli
 
-	std::cout << "Screen Width: " << screenWidth << std::endl;
-	std::cout << "Screen Height: " << screenHeight << std::endl;
-	
-	//std::cout << "Enter screen height (must be a multiple of 200)" << std::endl;
-	//std::cin >> screenheight;
-	Game * game = new Game((1000 / 20) * 16, 1000);
-	game->Init("Tetris");
-	game->Run();
-	delete game;
+    Game* game = new Game(Height*16/20, Height);
+    if (game->Init("Tetris")) {
+        game->Run();
+    }
+    delete game;  // This will call the destructor which handles cleanup
+    exit(0);    //if i don't call this, the app runs in the background
+    return 0;
 }
-
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
 // Debug program: F5 or Debug > Start Debugging menu

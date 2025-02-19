@@ -27,6 +27,7 @@ private:
 
 	bool EventTriggered(float interval);
 	void HandleInput();
+	void Update();
 
 public:
 	//clear lines needs access to thiss
@@ -41,5 +42,6 @@ public:
 	int Init(const char * title);
 	void Render();
 
+	void Cleanup();
 	~Game();
 };

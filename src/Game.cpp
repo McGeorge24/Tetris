@@ -9,6 +9,7 @@ Game::Game(int screenwidth, int screenheight) {
 	level = 0;
 	score = 0;
 	lines_cleared = 1;
+	update_interval = 0.5f;
 }
 
 // todo - move everything to the constructor
@@ -16,7 +17,7 @@ int Game::Init(const char* title) {
 
 	//set constants
 	InitWindow(width, height, title);
-	SetTargetFPS(30);
+	SetTargetFPS(60);
 	window_icon = LoadImage("assets\\pink tetromino.png");
 	SetWindowIcon(window_icon);
 
@@ -24,7 +25,7 @@ int Game::Init(const char* title) {
 	current_block = new Block(5, 1, false);
 	next_block = new Block(13, 5, false);
 	estimation = new Block(5, 1, false);
-	on_hold = new Block(13, 14, true);
+	on_hold = new Block(13, 16, true);
 
 	return 1;
 }
@@ -41,15 +42,58 @@ void Game::LoadingScreen() {
 		EndDrawing();
 	}
 	InitAudioDevice();
-	//normal_theme = LoadMusicStream("assets\\normal_theme.mp3");
+	normal_theme = LoadMusicStream("assets\\normal_theme.mp3");
 	intense_theme = LoadMusicStream("assets\\intense_theme.mp3");
-	//SetMasterVolume(30.0f);
+	SetMusicVolume(intense_theme, 5.0f);
 }
 
 void Game::GameOverScreen() {
 	DrawRectangle(0, 0, width-6*cellsize, height, { 0, 0, 0, 192 });
 	DrawRectangleGradientH(width-6*cellsize, 0, 6*cellsize, height, { 0,0,0,190 }, { 0,0,0,60 });
 	DrawText("Game over", 2*cellsize, height / 2 - cellsize/2, cellsize, { 255, 0, 0, 192 });
+}
+
+void Game::Update() {
+	if (!grid.isGameOver()) {
+		if (level > 0) 
+			UpdateMusicStream(intense_theme);
+		else
+			UpdateMusicStream(normal_theme);
+
+			// for passive block falling
+		if (EventTriggered(update_interval)) {
+			current_block->UpdatePositionPassive(&grid);
+		}
+
+		// update position according to inputs
+		this->HandleInput();
+
+		//case of block hitting the ground
+		if (current_block->IsPlaced(&grid)) {
+			current_block->Join(&grid);
+			*current_block = *next_block;
+			current_block->SetCoords(5, 1);
+			next_block->Randomise((unsigned int)last_update_time);
+		}
+
+
+		//estimate where the block will fall
+		*estimation = *current_block;
+		estimation->HardDrop(&grid);
+	}
+	else {
+		if (IsKeyPressed(KEY_ENTER)) {
+			StopMusicStream(normal_theme);
+			StopMusicStream(intense_theme);
+			PlayMusicStream(normal_theme);
+			PlayMusicStream(intense_theme);
+			on_hold->is_uninitialized = true;
+			grid.Clear();
+			score = 0;
+			lines_cleared = 0;
+			level = 0;
+		}
+	}
 }
 
 bool Game::EventTriggered(float interval) {
@@ -91,10 +135,14 @@ void Game::Render() {
 	DrawRectangleRoundedLines({ 10.5f * cellsize, 6.0f * cellsize - cellsize / 5.0f,  5.0f * cellsize, 1.5f * cellsize }, 0.1f, 8, cellsize / 10.0f, WHITE);	//score -boundry
 	DrawText(TextFormat("Level %i", level), 11 * cellsize, 6 * cellsize + cellsize / 10, (cellsize / 5) * 4, WHITE);	//score -points
 
+	//lines cleared visuals
+	DrawRectangleRoundedLines({ 10.5f * cellsize, 11.0f * cellsize - cellsize / 5.0f,  5.0f * cellsize, 1.5f * cellsize }, 0.1f, 8, cellsize / 10.0f, WHITE);	//score -boundry
+	DrawText(TextFormat("Cleared: %i", lines_cleared), 11 * cellsize, 11 * cellsize + cellsize / 10, (cellsize / 5) * 4, WHITE);	//score -points
+
 	//block on hold visuals
 	if (!on_hold->is_uninitialized) {
-		DrawRectangleRoundedLines({ 10.5f * cellsize, 11.0f * cellsize - cellsize / 5.0f,  5.0f * cellsize, 3.5f * cellsize }, 0.1f, 8, cellsize / 10.0f, WHITE);		//next -boundry
-		DrawText("Hold:", 11 * cellsize, 11 * cellsize + cellsize / 10, (cellsize / 5) * 4, WHITE);	//next -text
+		DrawRectangleRoundedLines({ 10.5f * cellsize, 13.0f * cellsize - cellsize / 5.0f,  5.0f * cellsize, 3.5f * cellsize }, 0.1f, 8, cellsize / 10.0f, WHITE);		//next -boundry
+		DrawText("Hold:", 11 * cellsize, 13 * cellsize + cellsize / 10, (cellsize / 5) * 4, WHITE);	//next -text
 		on_hold->Render(cellsize);
 	}
 
@@ -107,87 +155,40 @@ void Game::Render() {
 	DrawRectangleRoundedLines({ 10.5f * cellsize, 8.0f*cellsize -cellsize/5.0f,  5.0f * cellsize, 2.5f * cellsize }, 0.1f, 8, cellsize/10.0f, WHITE);	//score -boundry
 	DrawText("Score:", 11 * cellsize, 8 * cellsize + cellsize / 10, (cellsize / 5) * 4, WHITE);	//score -text
 	DrawText(TextFormat("   %i", score), 11 * cellsize, 9 * cellsize + cellsize / 10, (cellsize/5)*4, WHITE);	//score -points
+	DrawRectangleRoundedLines({ 13.5f * cellsize, 19.0f * cellsize, 2.4f * cellsize, 0.9f * cellsize }, 0.1f, 8, cellsize / 10.0f, WHITE);
+	DrawText("?", 15 * cellsize, 19 * cellsize, cellsize, WHITE);
+	DrawText("i", 14 * cellsize, 19 * cellsize, cellsize, WHITE);
 }
 
 void Game::Run() {
-
 	// randomise the used blocks
 	next_block->Randomise((int)this);
 	current_block->Randomise((int)this);
 
 	LoadingScreen();
-	
-	// main game loop
 
+	PlayMusicStream(normal_theme);
 	PlayMusicStream(intense_theme);
-	//PlayMusicStream(normal_theme);
-	SetMusicVolume(intense_theme, 7.0f);
-	//SetMusicVolume(normal_theme, 1.0f);
 
-	while (!ShouldClose()) {
+	while (!WindowShouldClose()) {
+		this->Update();
 
-		// render everything
 		BeginDrawing();
-			this->Render();
+		this->Render();
 		EndDrawing();
-		
 
-		if (!grid.isGameOver()) {
-			UpdateMusicStream(intense_theme);
-			/*if (level > 0) {
-			}
-			else
-				UpdateMusicStream(normal_theme);*/
-			
-			// for passive block falling
-			if (EventTriggered(0.5f)) {
-				current_block->UpdatePositionPassive(&grid);
-			}
-
-			// update position according to inputs
-			this->HandleInput();
-
-			//case of block hitting the ground
-			if (current_block->IsPlaced(&grid)) {
-				current_block->Join(&grid);
-				*current_block = *next_block;
-				current_block->SetCoords(5, 1);
-				next_block->Randomise((unsigned int)last_update_time);
-			}
-
-
-			//estimate where the block will fall
-			*estimation = *current_block;
-			estimation->HardDrop(&grid);
-		}
-		else {
-			if (IsKeyPressed(KEY_ENTER)) {
-				StopMusicStream(intense_theme);
-				//StopMusicStream(normal_theme);
-				PlayMusicStream(intense_theme);
-				//PlayMusicStream(normal_theme);
-				on_hold->is_uninitialized = true;
-				grid.Clear();
-				score = 0;
-				lines_cleared = 0;
-			}
-		}
-
-
-		// clear the lines and update score accordingly
 		score += grid.ClearLines(level, &lines_cleared);
-		// std::cout << lines_cleared << std::endl;
-		// update the level according to linec_cleared
+
 		if (lines_cleared / 10 > level) {
-			update_interval *= 0.83f;
+			update_interval *= 0.85f;
 			level = lines_cleared / 10;
 		}
-		
 	}
 
-	//StopMusicStream(normal_theme);
+	StopMusicStream(normal_theme);
 	StopMusicStream(intense_theme);
 }
+
 
 void Game::HandleInput() {
 	int modifier = 0;
@@ -254,7 +255,7 @@ void Game::HandleInput() {
 		on_hold->state = 0;
 
 		//reset the coords regardless
-		on_hold->SetCoords(13, 14);
+		on_hold->SetCoords(13, 16);
 		current_block->axis = current_block_coords;
 	}
 
@@ -264,15 +265,20 @@ void Game::HandleInput() {
 
 }
 
+void Game::Cleanup() {
+	StopMusicStream(normal_theme);
+	StopMusicStream(intense_theme);
+	UnloadMusicStream(normal_theme);
+	UnloadMusicStream(intense_theme);
+	CloseAudioDevice();
+	UnloadImage(window_icon);
+	CloseWindow();
+}
+
 Game::~Game() {
 	delete on_hold;
 	delete estimation;
 	delete next_block;
 	delete current_block;
-
-	UnloadImage(window_icon);
-	//UnloadMusicStream(normal_theme);
-	UnloadMusicStream(intense_theme);
-	CloseAudioDevice();
-	CloseWindow();
+	Cleanup();
 }
