@@ -12,6 +12,8 @@ Game::Game(int screenwidth, int screenheight) {
 	update_interval = 0.5f;
 }
 
+
+
 // todo - move everything to the constructor
 int Game::Init(const char* title) {
 
@@ -20,6 +22,8 @@ int Game::Init(const char* title) {
 	SetTargetFPS(60);
 	window_icon = LoadImage("assets\\pink tetromino.png");
 	SetWindowIcon(window_icon);
+	commands = LoadTexture("assets\\commands.png");
+	texture_scale = (float)height / (float)commands.height;
 
 	last_update_time = 0.0f;
 	current_block = new Block(5, 1, false);
@@ -54,13 +58,15 @@ void Game::GameOverScreen() {
 }
 
 void Game::Update() {
-	if (!grid.isGameOver()) {
-		if (level > 0) 
+	switch (state)
+	{
+	case 0:
+		if (level > 0)
 			UpdateMusicStream(intense_theme);
 		else
 			UpdateMusicStream(normal_theme);
 
-			// for passive block falling
+		// for passive block falling
 		if (EventTriggered(update_interval)) {
 			current_block->UpdatePositionPassive(&grid);
 		}
@@ -80,8 +86,13 @@ void Game::Update() {
 		//estimate where the block will fall
 		*estimation = *current_block;
 		estimation->HardDrop(&grid);
-	}
-	else {
+		estimation->ChangeColorBy(0, 0, 0, -175);
+
+		if ((IsKeyPressed(KEY_P)) || ((IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) && IsMouseInCell(13, 19)))
+			state = 4;
+		break;
+
+	case 1:
 		if (IsKeyPressed(KEY_ENTER)) {
 			StopMusicStream(normal_theme);
 			StopMusicStream(intense_theme);
@@ -92,8 +103,36 @@ void Game::Update() {
 			score = 0;
 			lines_cleared = 0;
 			level = 0;
+			state = 0;
+			update_interval = 0.5f;
 		}
+		break;
+
+	case 2:
+		if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsMouseInCell(0, 0))
+			state = 0;
+		break;
+
+	case 3:
+		if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsMouseInCell(0, 0))
+			state = 0;
+		break;
+
+	case 4:
+		if ((IsKeyPressed(KEY_ENTER)) || (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)))
+			state = 0;
+		break;
+
+	default:
+			break;
 	}
+
+	if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsMouseInCell(14, 19))
+		state = 2;
+	else if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsMouseInCell(15, 19))
+		state = 3;
+	else if (grid.isGameOver())
+		state = 1;
 }
 
 bool Game::EventTriggered(float interval) {
@@ -106,29 +145,31 @@ bool Game::EventTriggered(float interval) {
 	return false;
 }
 
-void Game::Render() {
-	ClearBackground(BLACK);
+bool Game::IsMouseInCell(int x, int y)
+{
+	x *= cellsize;
+	y *= cellsize;
 
+	if ((GetMouseX() >= x) && (GetMouseX() <= x + cellsize) && (GetMouseY() >= y) && (GetMouseY() <= y + cellsize)) {
+		return true;
+	}
+	return false;
+}
+
+void Game::PlayScreen()
+{
 	//render game grid
-	grid.Render(cellsize);	
-
-	//game ui --> logo + gradient
-	DrawText("Tetris", 10 * cellsize + cellsize/5, cellsize/10, 2*cellsize-cellsize/5, WHITE);
-	DrawRectangleGradientH(3 * cellsize, 0, width - 3 * cellsize, height, { 100,0,235,0 }, { 100,0,235,145 });
-	
-	//separating line (field | info)
-	DrawLine(10*cellsize, 0, 10*cellsize, height, { 160, 160, 180, 255 });
+	grid.Render(cellsize);
 
 	//current block rendering
 	current_block->Render(cellsize);
 
 	//estimated fall rendering
-	estimation->ChangeColorBy(0,0,0 , -175);
 	estimation->Render(cellsize);
 
 	//next_block visuals
-	DrawRectangleRoundedLines({10.5f*cellsize, 2.0f*cellsize-cellsize/5.0f,  5.0f* cellsize, 3.5f* cellsize},0.1f, 8, cellsize/10.0f, WHITE);		//next -boundry
-	DrawText("Next:", 11 * cellsize, 2 * cellsize+cellsize/10, (cellsize/5)*4, WHITE);	//next -text
+	DrawRectangleRoundedLines({ 10.5f * cellsize, 2.0f * cellsize - cellsize / 5.0f,  5.0f * cellsize, 3.5f * cellsize }, 0.1f, 8, cellsize / 10.0f, WHITE);		//next -boundry
+	DrawText("Next:", 11 * cellsize, 2 * cellsize + cellsize / 10, (cellsize / 5) * 4, WHITE);	//next -text
 	next_block->Render(cellsize);	//next -piece
 
 	//game (difficulty) level visuals
@@ -146,18 +187,64 @@ void Game::Render() {
 		on_hold->Render(cellsize);
 	}
 
-	//case of game over
-	if (grid.isGameOver()) {
+	DrawRectangleRoundedLines({ 10.5f * cellsize, 8.0f * cellsize - cellsize / 5.0f,  5.0f * cellsize, 2.5f * cellsize }, 0.1f, 8, cellsize / 10.0f, WHITE);	//score -boundry
+	DrawText("Speed:", 11 * cellsize, 8 * cellsize + cellsize / 10, (cellsize / 5) * 4, WHITE);	//score -text
+	DrawText(TextFormat("   %f", update_interval), 11 * cellsize, 9 * cellsize + cellsize / 10, (cellsize / 5) * 4, WHITE);	//score -points
+
+	//pause button
+	DrawRectangle(13.3 * cellsize, 19.2 * cellsize, cellsize / 8, cellsize / 2, WHITE);
+	DrawRectangle(13.5 * cellsize, 19.2 * cellsize, cellsize / 8, cellsize / 2, WHITE);
+	
+}
+
+void Game::Render() 
+{
+	ClearBackground(BLACK);
+
+	//game ui --> gradient
+	DrawRectangleGradientH(3 * cellsize, 0, width - 3 * cellsize, height, { 100,0,235,0 }, { 100,0,235,145 });
+
+	//separating line (field | info)
+	DrawLine(10*cellsize, 0, 10*cellsize, height, { 160, 160, 180, 255 });
+	
+
+	switch (state)
+	{
+	case 0:
+		PlayScreen();
+		break;
+
+	case 1:
+		PlayScreen();
 		GameOverScreen();
+		DrawRectangleRoundedLines({ 10.5f * cellsize, 8.0f * cellsize - cellsize / 5.0f,  5.0f * cellsize, 2.5f * cellsize }, 0.1f, 8, cellsize / 10.0f, WHITE);	//score -boundry
+		DrawText("Score:", 11 * cellsize, 8 * cellsize + cellsize / 10, (cellsize / 5) * 4, WHITE);	//score -text
+		DrawText(TextFormat("   %i", score), 11 * cellsize, 9 * cellsize + cellsize / 10, (cellsize / 5) * 4, WHITE);	//score -points
+		break;
+
+	case 3: 
+		DrawTextureEx(commands,  { 0.0f, 0.0f }, 0.0f, texture_scale, { 255, 255, 255, 255 });
+		//DrawTexture(commands, 0, 0, { 255,255,255,255 });
+		DrawText("State:", 11 * cellsize, 8 * cellsize + cellsize / 10, (cellsize / 5) * 4, WHITE);	//score -text
+		DrawText(TextFormat("   %i", state), 11 * cellsize, 9 * cellsize + cellsize / 10, (cellsize / 5) * 4, WHITE);	//score -points
+		break;
+
+	case 4:
+		PlayScreen();
+		DrawRectangle(0, 0, width, height, { 32,32,32,100 });
+		break;
+
+	default:
+		break;
 	}
 	
-	//draw achieved score over game_over screen
-	DrawRectangleRoundedLines({ 10.5f * cellsize, 8.0f*cellsize -cellsize/5.0f,  5.0f * cellsize, 2.5f * cellsize }, 0.1f, 8, cellsize/10.0f, WHITE);	//score -boundry
-	DrawText("Score:", 11 * cellsize, 8 * cellsize + cellsize / 10, (cellsize / 5) * 4, WHITE);	//score -text
-	DrawText(TextFormat("   %i", score), 11 * cellsize, 9 * cellsize + cellsize / 10, (cellsize/5)*4, WHITE);	//score -points
-	DrawRectangleRoundedLines({ 13.5f * cellsize, 19.0f * cellsize, 2.4f * cellsize, 0.9f * cellsize }, 0.1f, 8, cellsize / 10.0f, WHITE);
-	DrawText("?", 15 * cellsize, 19 * cellsize, cellsize, WHITE);
-	DrawText("i", 14 * cellsize, 19 * cellsize, cellsize, WHITE);
+
+	//game ui --> logo
+	DrawText("Tetris", 10 * cellsize + cellsize / 5, cellsize / 10, 2 * cellsize - cellsize / 5, WHITE);
+	
+
+	DrawText("?", 15.25 * cellsize, 19 * cellsize, cellsize, WHITE);
+	DrawText("i", 14.4 * cellsize, 19 * cellsize, cellsize, WHITE);
 }
 
 void Game::Run() {

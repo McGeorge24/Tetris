@@ -11,8 +11,18 @@ private:
 	Image window_icon;
 	Music normal_theme;
 	Music intense_theme;
+	Texture2D commands;
+	float texture_scale;
 
 	//game state
+	int state;
+	//0 = play
+	//1 = game over
+	//2 = info (i)
+	//3 = settings & controls (?)
+	//4 = paused
+
+	//stats
 	int level;
 	int score;
 	float last_update_time;
@@ -28,6 +38,9 @@ private:
 	bool EventTriggered(float interval);
 	void HandleInput();
 	void Update();
+	
+	//mouse position
+	bool IsMouseInCell(int x, int y);
 
 public:
 	//clear lines needs access to thiss
@@ -39,6 +52,10 @@ public:
 	bool ShouldClose();
 	void LoadingScreen();
 	void GameOverScreen();
+	void PlayScreen();
+	void InfoScreen();
+	void SettingsScreen();
+
 	int Init(const char * title);
 	void Render();
 
