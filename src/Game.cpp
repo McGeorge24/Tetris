@@ -15,15 +15,15 @@ Game::Game(int screenwidth, int screenheight) {
 
 
 // todo - move everything to the constructor
-int Game::Init(const char* title) {
+int Game::Init(const char*a title) {
 
 	//set constants
 	InitWindow(width, height, title);
 	SetTargetFPS(60);
 	window_icon = LoadImage("assets\\pink tetromino.png");
 	SetWindowIcon(window_icon);
-	commands = LoadTexture("assets\\commands.png");
-	texture_scale = (float)height / (float)commands.height;
+	settings = LoadTexture("assets\\settingsa.png");
+	texture_scale = (float)height / (float)settings.height;
 
 	last_update_time = 0.0f;
 	current_block = new Block(5, 1, false);
@@ -223,10 +223,8 @@ void Game::Render()
 		break;
 
 	case 3: 
-		DrawTextureEx(commands,  { 0.0f, 0.0f }, 0.0f, texture_scale, { 255, 255, 255, 255 });
+		DrawTextureEx(settings,  { 0.0f, 0.0f }, 0.0f, texture_scale, { 255, 255, 255, 255 });
 		//DrawTexture(commands, 0, 0, { 255,255,255,255 });
-		DrawText("State:", 11 * cellsize, 8 * cellsize + cellsize / 10, (cellsize / 5) * 4, WHITE);	//score -text
-		DrawText(TextFormat("   %i", state), 11 * cellsize, 9 * cellsize + cellsize / 10, (cellsize / 5) * 4, WHITE);	//score -points
 		break;
 
 	case 4:
@@ -267,7 +265,7 @@ void Game::Run() {
 		score += grid.ClearLines(level, &lines_cleared);
 
 		if (lines_cleared / 10 > level) {
-			update_interval *= 0.85f;
+			update_interval *= 0.9f;
 			level = lines_cleared / 10;
 		}
 	}

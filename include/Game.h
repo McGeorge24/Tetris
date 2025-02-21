@@ -11,7 +11,7 @@ private:
 	Image window_icon;
 	Music normal_theme;
 	Music intense_theme;
-	Texture2D commands;
+	Texture2D settings;
 	float texture_scale;
 
 	//game state
