@@ -15,14 +15,14 @@ Game::Game(int screenwidth, int screenheight) {
 
 
 // todo - move everything to the constructor
-int Game::Init(const char*a title) {
+int Game::Init(const char* title) {
 
 	//set constants
 	InitWindow(width, height, title);
 	SetTargetFPS(60);
 	window_icon = LoadImage("assets\\pink tetromino.png");
 	SetWindowIcon(window_icon);
-	settings = LoadTexture("assets\\settingsa.png");
+	settings = LoadTexture("assets\\settings.png");
 	texture_scale = (float)height / (float)settings.height;
 
 	last_update_time = 0.0f;
@@ -109,12 +109,12 @@ void Game::Update() {
 		break;
 
 	case 2:
-		if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsMouseInCell(0, 0))
+		if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsMouseInCell(13, 19))
 			state = 0;
 		break;
 
 	case 3:
-		if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsMouseInCell(0, 0))
+		if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && IsMouseInCell(13, 19))
 			state = 0;
 		break;
 
@@ -222,9 +222,14 @@ void Game::Render()
 		DrawText(TextFormat("   %i", score), 11 * cellsize, 9 * cellsize + cellsize / 10, (cellsize / 5) * 4, WHITE);	//score -points
 		break;
 
+	case 2:
+		DrawText("x", 13.25f * cellsize, 18.9f * cellsize, cellsize, WHITE);
+		break;
+
 	case 3: 
 		DrawTextureEx(settings,  { 0.0f, 0.0f }, 0.0f, texture_scale, { 255, 255, 255, 255 });
-		//DrawTexture(commands, 0, 0, { 255,255,255,255 });
+		DrawText("x", 13.25f * cellsize, 18.9f * cellsize, cellsize, WHITE);
+		//DrawTexture(settings, 0, 0, { 255,255,255,255 });
 		break;
 
 	case 4:
